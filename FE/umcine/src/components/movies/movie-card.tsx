@@ -1,20 +1,23 @@
 import type { Movie } from "../../types/movie";
 import { Link } from "@tanstack/react-router";
-import { cn } from "../../utils/cn";
+// import { cn } from "../../utils/cn";
+import { BookmarkButton } from '../bookmark-button';
 
 type MovieCardProps = {
   movie: Movie;
-  onToggleBookmark: (movieId: number) => void;
+  // onToggleBookmark: (movieId: number) => void;
 };
 
-export default function MovieCard({ movie, onToggleBookmark }: MovieCardProps) {
+export default function MovieCard({ movie }: MovieCardProps) {
   return (
     <article className="min-w-0">
       <div className="relative aspect-[0.69] overflow-hidden rounded-[7px] bg-[#dfe2e8]">
         <Link to="/movies/$movieId" params={{ movieId: String(movie.id) }}>
           <img src={movie.posterPath} alt={movie.title} className="block h-full w-full object-cover" />
         </Link>
-        <button
+
+        <BookmarkButton movieId={movie.id}></BookmarkButton>
+        {/* <button
           className={cn(
             "absolute right-2 top-2 rounded p-1 text-white border-white/150 border transition-colors duration-200",
             movie.isBookmarked ? "bg-blue-600 border-blue-600" : "bg-black/60",
@@ -25,7 +28,7 @@ export default function MovieCard({ movie, onToggleBookmark }: MovieCardProps) {
           type="button"
         >
         <img src={movie.isBookmarked ? "/icons/movie-icons/bookmark.svg" : "/icons/movie-icons/bookmark-outline.svg"} alt="" className="h-4 w-4 object-contain invert" />
-        </button>
+        </button> */}
       </div>
       
       <div className="pt-[5px] text-left">

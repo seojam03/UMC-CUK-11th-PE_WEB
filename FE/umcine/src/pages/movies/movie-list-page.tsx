@@ -3,29 +3,39 @@ import "../../index.css";
 import { movies as initialMovies } from "../../data/movies";
 import MovieGrid from "../../components/movies/movie-grid";
 import Pagination from "../../components/movies/pagination";
-import type { Movie } from "../../types/movie";
+import { useBookmark } from "../../hooks/useBookmark";
 
 const MOVIES_PER_PAGE = 10;
 
 export function MovieListPage() {
-  const [movies, setMovies] = useState<Movie[]>(initialMovies);
+  const { bookmarks,  toggleBookmark } = useBookmark();
+  // const [movies, setMovies] = useState<Movie[]>(initialMovies);
+
+  // 로컬 state로 영화 데이터를 복사해서 들고 있을 필요가 없습니다.
+  // 원본 initialMovies 배열과 커스텀 훅의 bookmarks 배열을 실시간으로 결합합니다.
+  const moviesWithBookmarks = initialMovies.map((movie) => ({
+    ...movie,
+    isBookmarked: bookmarks.includes(movie.id),
+  }));
+
   const [currentPage, setCurrentPage] = useState(1);
-  const totalPages = Math.max(1, Math.ceil(movies.length / MOVIES_PER_PAGE));
+
+  const totalPages = Math.max(1, Math.ceil(moviesWithBookmarks.length / MOVIES_PER_PAGE));
   const firstMovieIndex = (currentPage - 1) * MOVIES_PER_PAGE;
-  const visibleMovies = movies.slice(
+  const visibleMovies = moviesWithBookmarks.slice(
     firstMovieIndex,
     firstMovieIndex + MOVIES_PER_PAGE
   );
 
-  const handleToggleBookmark = (movieId: number) => {
-    setMovies((prevMovies) =>
-      prevMovies.map((movie) =>
-        movie.id === movieId
-          ? { ...movie, isBookmarked: !movie.isBookmarked }
-          : movie
-      )
-    );
-  };
+  // const handleToggleBookmark = (movieId: number) => {
+  //   setMovies((prevMovies) =>
+  //     prevMovies.map((movie) =>
+  //       movie.id === movieId
+  //         ? { ...movie, isBookmarked: !movie.isBookmarked }
+  //         : movie
+  //     )
+  //   );
+  // };
 
   return (
     <div className="flex min-h-screen flex-col bg-[#f7f8fa] text-[#17191f]">
@@ -33,7 +43,8 @@ export function MovieListPage() {
         <h1 className="mb-[10px] text-left text-[25px] font-extrabold tracking-[-1px] text-[#17191f]">영화 목록</h1>
         <MovieGrid
           movies={visibleMovies}
-          onToggleBookmark={handleToggleBookmark}
+          onToggleBookmark={toggleBookmark} // 여기서 toggleBookmark를 사용하여 북마크 상태를 토글합니다.
+          // onToggleBookmark={handleToggleBookmark}
         />
         <Pagination
           currentPage={currentPage}

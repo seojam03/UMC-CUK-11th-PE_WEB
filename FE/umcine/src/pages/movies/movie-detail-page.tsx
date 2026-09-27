@@ -2,10 +2,12 @@ import { useState } from "react";
 import { Link, useParams } from "@tanstack/react-router";
 import { movies } from "../../data/movies";
 
+import { DetailBookmarkButton } from "../../components/bookmark-button";
+
 export function MovieDetailPage() {
 	const { movieId } = useParams({ from: "/movies/$movieId" });
 	const movie = movies.find((item) => item.id === Number(movieId));
-	const [isBookmarked, setIsBookmarked] = useState(movie?.isBookmarked ?? false);
+	// const [isBookmarked, setIsBookmarked] = useState(movie?.isBookmarked ?? false);
 	const [rating, setRating] = useState(0);
 	const [review, setReview] = useState("");
 	const [isReviewSaved, setIsReviewSaved] = useState(false);
@@ -36,10 +38,11 @@ export function MovieDetailPage() {
 					<div className="pt-px">
 						<h2 className="mb-3 text-[15px] font-bold leading-[1.3] max-[700px]:text-[13px]">{movie.tagline}</h2>
 						<p className="mb-[11px] max-w-[450px] text-[10px] leading-[1.8] text-[#737985] max-[700px]:text-[9px] max-[700px]:leading-[1.6]">{movie.overview}</p>
-						<button className="inline-flex h-[29px] items-center gap-[5px] rounded-[5px] bg-[#4c63d9] px-[11px] text-[10px] font-bold text-white" type="button" onClick={() => setIsBookmarked((bookmarked) => !bookmarked)} aria-pressed={isBookmarked}>
+						<DetailBookmarkButton movieId={movie.id}></DetailBookmarkButton>
+						{/* <button className="inline-flex h-[29px] items-center gap-[5px] rounded-[5px] bg-[#4c63d9] px-[11px] text-[10px] font-bold text-white" type="button" onClick={() => setIsBookmarked((bookmarked) => !bookmarked)} aria-pressed={isBookmarked}>
 							<img className="h-[13px] w-[13px] invert" src={isBookmarked ? "/icons/movie-icons/bookmark.svg" : "/icons/movie-icons/bookmark-outline.svg"} alt="" />
 							{isBookmarked ? "찜했어요" : "찜하기"}
-						</button>
+						</button> */}
 					</div>
 				</div>
 
