@@ -16,6 +16,7 @@ export default function Header() {
         <nav className="flex items-center gap-[22px] max-[700px]:gap-3" aria-label="주요 메뉴">
           <Link to="/" activeProps={{ className: "font-bold text-[#000000] underline underline-offset-2" }} className="text-[11px] text-[#6e737d] no-underline">영화</Link>
           <Link to="/search" activeProps={{ className: "font-bold text-[#000000] underline underline-offset-2" }} className="text-[11px] text-[#6e737d] no-underline">검색</Link>
+          <Link to="/members" activeProps={{ className: "font-bold text-[#000000] underline underline-offset-2" }} className="text-[11px] text-[#6e737d] no-underline">회원</Link>
         </nav>
       </div>
       <div className="flex items-center gap-2">

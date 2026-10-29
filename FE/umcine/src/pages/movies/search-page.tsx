@@ -1,26 +1,34 @@
 import { Link, useNavigate, useSearch } from "@tanstack/react-router";
-import { useEffect, useState, type SubmitEvent } from "react";
-import { movies } from "../../data/movies";
+import { useQuery } from "@tanstack/react-query";
+import { useState, type SubmitEvent } from "react";
+
+import { searchMovies } from "../../api/movies/search-movies";
+import type { TmdbMovieListItem } from "../../api/movies/models";
 
 export function SearchPage() {
   const { query } = useSearch({ from: "/search" });
   const navigate = useNavigate({ from: "/search" });
+  
+  const normalizedQuery = query?.trim() ?? "";
+
+  // 폼 입력 상태 (URL query가 바뀌면 입력창도 맞춰요)
   const [searchText, setSearchText] = useState(query ?? "");
-
-  useEffect(() => {
+  const [syncedQuery, setSyncedQuery] = useState(query);
+  if (query !== syncedQuery) {
+    setSyncedQuery(query);
     setSearchText(query ?? "");
-  }, [query]);
+  }
 
-  const normalizedQuery = query?.trim().toLowerCase() ?? "";
-  const ITEMS_PER_PAGE = 15; // 한 페이지당 보여줄 영화 개수
-  const searchResults = normalizedQuery
-    ? movies.filter(
-        (movie) =>
-          movie.title.toLowerCase().includes(normalizedQuery) ||
-          movie.originalTitle.toLowerCase().includes(normalizedQuery),
-      )
-    : [];
-  const totalPages = Math.ceil(searchResults.length / ITEMS_PER_PAGE);
+  // 검색어를 query key에 넣어 검색어마다 캐시를 따로 저장하고, 검색어가 있을 때만 요청해요.
+  const searchQuery = useQuery({
+    queryKey: ["movies", "search", { query: normalizedQuery }],
+    queryFn: () => searchMovies({ query: normalizedQuery }),
+    enabled: normalizedQuery.length > 0,
+  });
+
+  const movies: TmdbMovieListItem[] = searchQuery.data?.results ?? [];
+  const ITEMS_PER_PAGE = 15; 
+  const totalPages = Math.ceil(movies.length / ITEMS_PER_PAGE);
 
   function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -53,18 +61,24 @@ export function SearchPage() {
 
           <div className="flex items-baseline gap-[7px] border-b border-[#e4e6ea] py-[13px] pb-2">
             <h2 className="text-[10px] font-bold">‘{query}’ 검색 결과</h2>
-            <span className="text-[8px] text-[#a2a7b0] ml-auto">영화 {searchResults.length}편 · {totalPages}페이지</span>
+            <span className="text-[8px] text-[#a2a7b0] ml-auto">영화 {movies.length}편 · {totalPages}페이지</span>
           </div>
-          {searchResults.length === 0 ? (
+
+          {/* 상태(Loading, Error, Empty, Success)에 따른 조건부 렌더링 */}
+          {searchQuery.isLoading ? (
+            <p className="py-[45px] text-center text-[10px] text-[#8e949e]">검색 결과를 불러오는 중입니다...</p>
+          ) : searchQuery.isError ? (
+            <p className="py-[45px] text-center text-[10px] text-[#ef4444]">검색 결과를 불러오지 못했어요.</p>
+          ) : searchQuery.isSuccess && movies.length === 0 ? (
             <p className="py-[45px] text-center text-[10px] text-[#8e949e]">검색 결과가 없어요.</p>
           ) : (
             <ul className="grid grid-cols-2 gap-x-[42px] max-[700px]:grid-cols-1">
-              {searchResults.map((movie) => (
+              {movies.map((movie) => (
                 <li className="grid min-h-[111px] min-w-0 grid-cols-[59px_minmax(0,1fr)] gap-x-[10px] border-b border-[#e4e6ea] px-0 py-[10px] pb-3" key={movie.id}>
-                  <img className="h-[88px] w-[59px] rounded object-cover" src={movie.posterPath} alt={`${movie.title} 포스터`} />
+                  <img className="h-[88px] w-[59px] rounded object-cover" src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`} alt={`${movie.title} 포스터`} />
                   <div className="min-w-0">
                     <h3 className="mt-px overflow-hidden text-ellipsis whitespace-nowrap text-[9px]">{movie.title}</h3>
-                    <p className="mb-[7px] mt-0.5 overflow-hidden text-ellipsis whitespace-nowrap text-[7px] text-[#9aa0aa]">{movie.originalTitle} · {movie.releaseDate}</p>
+                    <p className="mb-[7px] mt-0.5 overflow-hidden text-ellipsis whitespace-nowrap text-[7px] text-[#9aa0aa]">{movie.original_title} · {movie.release_date}</p>
                     <p className="line-clamp-2 overflow-hidden text-[7px] leading-[1.45] text-[#777d87]">{movie.overview}</p>
                   </div>
                   <Link

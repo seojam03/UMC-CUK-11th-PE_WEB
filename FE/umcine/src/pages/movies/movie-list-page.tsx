@@ -1,61 +1,56 @@
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import "../../index.css";
-import { movies as initialMovies } from "../../data/movies";
+import { getMovies } from "../../api/movies/get-movies";
 import MovieGrid from "../../components/movies/movie-grid";
 import Pagination from "../../components/movies/pagination";
 import { useBookmark } from "../../hooks/useBookmark";
+import { toMovieCard } from "../../utils/movies/to-movie-card";
 
-const MOVIES_PER_PAGE = 10;
+// TMDB는 page를 500까지만 받아요.
+const TMDB_MAX_PAGE = 500;
 
 export function MovieListPage() {
-  const { bookmarks,  toggleBookmark } = useBookmark();
-  // const [movies, setMovies] = useState<Movie[]>(initialMovies);
+  const { toggleBookmark } = useBookmark();
+  const [page, setPage] = useState(1);
 
-  // 로컬 state로 영화 데이터를 복사해서 들고 있을 필요가 없습니다.
-  // 원본 initialMovies 배열과 커스텀 훅의 bookmarks 배열을 실시간으로 결합합니다.
-  const moviesWithBookmarks = initialMovies.map((movie) => ({
-    ...movie,
-    isBookmarked: bookmarks.includes(movie.id),
-  }));
+  // page를 query key에 넣어 페이지마다 캐시를 따로 저장해요.
+  const moviesQuery = useQuery({
+    queryKey: ["movies", "list", { page }],
+    queryFn: () => getMovies({ page }),
+  });
 
-  const [currentPage, setCurrentPage] = useState(1);
+  const movies = (moviesQuery.data?.results ?? []).map(toMovieCard);
+  const totalPages = Math.min(moviesQuery.data?.total_pages ?? 0, TMDB_MAX_PAGE);
 
-  const totalPages = Math.max(1, Math.ceil(moviesWithBookmarks.length / MOVIES_PER_PAGE));
-  const firstMovieIndex = (currentPage - 1) * MOVIES_PER_PAGE;
-  const visibleMovies = moviesWithBookmarks.slice(
-    firstMovieIndex,
-    firstMovieIndex + MOVIES_PER_PAGE
-  );
-
-  // const handleToggleBookmark = (movieId: number) => {
-  //   setMovies((prevMovies) =>
-  //     prevMovies.map((movie) =>
-  //       movie.id === movieId
-  //         ? { ...movie, isBookmarked: !movie.isBookmarked }
-  //         : movie
-  //     )
-  //   );
-  // };
+  const handlePageChange = (nextPage: number) => {
+    setPage(nextPage);
+  };
 
   return (
     <div className="flex min-h-screen flex-col bg-[#f7f8fa] text-[#17191f]">
       <main id="movies" className="mx-auto w-full max-w-[1028px] flex-1 px-0 pb-16 pt-[18px] max-[1080px]:px-7 max-[700px]:px-4 max-[700px]:pb-12">
         <h1 className="mb-[10px] text-left text-[25px] font-extrabold tracking-[-1px] text-[#17191f]">영화 목록</h1>
-        <MovieGrid
-          movies={visibleMovies}
-          onToggleBookmark={toggleBookmark} // 여기서 toggleBookmark를 사용하여 북마크 상태를 토글합니다.
-          // onToggleBookmark={handleToggleBookmark}
-        />
-        <Pagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={setCurrentPage}
-        />
+        {moviesQuery.isPending ? (
+          <p className="py-[45px] text-center text-[10px] text-[#8e949e]">영화를 불러오는 중이에요.</p>
+        ) : moviesQuery.isError ? (
+          <p className="py-[45px] text-center text-[10px] text-[#ef4444]">영화 목록을 불러오지 못했어요.</p>
+        ) : movies.length === 0 ? (
+          <p className="py-[45px] text-center text-[10px] text-[#8e949e]">표시할 영화가 없어요.</p>
+        ) : (
+          <>
+            <MovieGrid movies={movies} onToggleBookmark={toggleBookmark} />
+            <Pagination
+              currentPage={page}
+              totalPages={totalPages}
+              onPageChange={handlePageChange}
+            />
+          </>
+        )}
       </main>
       <footer className="flex min-h-[32px] items-center justify-end border-t border-[#e7e9ed] bg-white px-12 text-[8px] text-[#8e949e] max-[1080px]:px-7 max-[700px]:justify-center max-[700px]:px-4">
         <p>This product uses the TMDB API but is not endorsed or certified by TMDB.</p>
       </footer>
     </div>
-
   );
 }
