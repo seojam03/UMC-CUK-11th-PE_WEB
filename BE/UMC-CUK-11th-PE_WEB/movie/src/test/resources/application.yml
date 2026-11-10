@@ -1,0 +1,22 @@
+# 테스트에서만 쓰는 설정이에요. 실제 MySQL 대신 메모리 DB(H2)를 띄워서
+# 테스트가 끝나면 데이터가 사라지고, 내 로컬 DB나 .env가 없어도 테스트가 돌아가요.
+#
+# 파일 이름을 main과 똑같이 application.yml로 맞춰야 해요.
+# application.yaml로 만들었더니 main의 application.yml도 함께 읽혀서 두 설정이 섞였어요.
+# url은 main의 MySQL 주소가, driver-class-name은 이 파일의 H2 드라이버가 쓰여서
+# "Driver org.h2.Driver claims to not accept jdbcUrl, jdbc:mysql://..." 로 컨텍스트 로딩이 실패했어요.
+# 이름이 같으면 테스트 클래스패스의 이 파일이 main 파일을 가려서 main 설정은 아예 읽히지 않아요.
+spring:
+  datasource:
+    url: jdbc:h2:mem:umc_movie;MODE=MySQL;DB_CLOSE_DELAY=-1;DATABASE_TO_LOWER=TRUE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: create-drop # 엔티티를 보고 테이블을 만들고, 테스트가 끝나면 지워요
+    open-in-view: false
+
+jwt:
+  secret: test-secret-for-context-loading-only # 32바이트 이상이어야 HMAC 키로 쓸 수 있어요
+  access-expiration: 3600
