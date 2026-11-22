@@ -37,3 +37,8 @@ out/
 .vscode/
 
 .env
+
+### 10주차: 비밀 값이 든 파일 ###
+.env.*
+!.env.production.example
+*.pem

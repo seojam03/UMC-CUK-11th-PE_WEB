@@ -20,3 +20,7 @@ spring:
 jwt:
   secret: test-secret-for-context-loading-only # 32바이트 이상이어야 HMAC 키로 쓸 수 있어요
   access-expiration: 3600
+
+app:
+  cors:
+    allowed-origins: http://localhost:3000

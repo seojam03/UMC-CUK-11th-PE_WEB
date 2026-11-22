@@ -1,0 +1,17 @@
+# 10주차: 내 컴퓨터에서 실행할 때 쓰는 설정이에요.
+spring:
+  # src/main/resources/.env(DB_USER, DB_PW, JWT_SECRET, JWT_ACCESS_EXPIRATION)를 읽어요.
+  # .env는 Git에 올라가지 않고, bootJar에서도 빠져요. 그래서 운영 서버에서는 이 값을 쓸 수 없어요.
+  config:
+    import: optional:classpath:.env[.properties]
+  datasource:
+    url: jdbc:mysql://localhost:3306/umc_movie
+    username: ${DB_USER}
+    password: ${DB_PW}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+
+app:
+  cors:
+    allowed-origins: http://localhost:5173,http://localhost:3000
